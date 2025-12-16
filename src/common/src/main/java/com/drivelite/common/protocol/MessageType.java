@@ -29,6 +29,7 @@ public enum MessageType {
     GET_VERSIONS,
 
     // Control (internal)
+    PING,
     READY,
     FILE_META
 }
