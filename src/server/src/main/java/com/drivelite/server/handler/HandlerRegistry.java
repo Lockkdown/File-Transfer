@@ -40,6 +40,17 @@ public class HandlerRegistry {
         dispatcher.registerHandler(MessageType.LIST_MY_FILES, new ListMyFilesHandler());
         dispatcher.registerHandler(MessageType.LIST_SHARED_WITH_ME, new ListSharedWithMeHandler());
 
-        System.out.println("[INIT] Handlers registered: PING, LOGIN, REGISTER, LOGOUT, FORGOT_PASSWORD, RESET_PASSWORD, UPLOAD_BEGIN, DELETE_FILE, RENAME_FILE, DOWNLOAD_BEGIN, LIST_MY_FILES, LIST_SHARED_WITH_ME");
+        // Sharing handlers (M9)
+        dispatcher.registerHandler(MessageType.SHARE_ADD, new ShareAddHandler());
+        dispatcher.registerHandler(MessageType.SHARE_UPDATE, new ShareUpdateHandler());
+        dispatcher.registerHandler(MessageType.SHARE_REMOVE, new ShareRemoveHandler());
+        dispatcher.registerHandler(MessageType.LIST_SHARES_OF_FILE, new ListSharesOfFileHandler());
+
+        // Versioning handlers (M10)
+        dispatcher.registerHandler(MessageType.UPLOAD_NEW_VERSION_BEGIN, new UploadNewVersionHandler());
+        dispatcher.registerHandler(MessageType.GET_VERSIONS, new GetVersionsHandler());
+        // Note: DOWNLOAD_VERSION uses the same DOWNLOAD_BEGIN with versionNumber parameter
+
+        System.out.println("[INIT] Handlers registered: PING, LOGIN, REGISTER, LOGOUT, FORGOT_PASSWORD, RESET_PASSWORD, UPLOAD_BEGIN, DELETE_FILE, RENAME_FILE, DOWNLOAD_BEGIN, LIST_MY_FILES, LIST_SHARED_WITH_ME, SHARE_ADD, SHARE_UPDATE, SHARE_REMOVE, LIST_SHARES_OF_FILE, UPLOAD_NEW_VERSION_BEGIN, GET_VERSIONS");
     }
 }

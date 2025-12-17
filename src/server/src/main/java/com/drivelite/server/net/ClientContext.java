@@ -33,6 +33,14 @@ public class ClientContext {
     private long downloadFileSize;
     private String downloadSha256;
     private boolean downloading;
+    
+    // Upload new version context (set khi upload version mới)
+    private int uploadNewVersionFileId;
+    private int uploadNewVersionNumber;
+    private long uploadNewVersionFileSize;
+    private String uploadNewVersionSha256;
+    private String uploadNewVersionNote;
+    private boolean uploadingNewVersion;
 
     public ClientContext(Socket socket) {
         this.socket = socket;
@@ -159,6 +167,50 @@ public class ClientContext {
 
     public String getDownloadSha256() {
         return downloadSha256;
+    }
+
+    // === Upload new version context methods ===
+    
+    public void setUploadNewVersionContext(int fileId, int versionNumber, long fileSize, String sha256, String note) {
+        this.uploadNewVersionFileId = fileId;
+        this.uploadNewVersionNumber = versionNumber;
+        this.uploadNewVersionFileSize = fileSize;
+        this.uploadNewVersionSha256 = sha256;
+        this.uploadNewVersionNote = note;
+        this.uploadingNewVersion = true;
+    }
+
+    public void clearUploadNewVersionContext() {
+        this.uploadNewVersionFileId = 0;
+        this.uploadNewVersionNumber = 0;
+        this.uploadNewVersionFileSize = 0;
+        this.uploadNewVersionSha256 = null;
+        this.uploadNewVersionNote = null;
+        this.uploadingNewVersion = false;
+    }
+
+    public boolean isUploadingNewVersion() {
+        return uploadingNewVersion;
+    }
+
+    public int getUploadNewVersionFileId() {
+        return uploadNewVersionFileId;
+    }
+
+    public int getUploadNewVersionNumber() {
+        return uploadNewVersionNumber;
+    }
+
+    public long getUploadNewVersionFileSize() {
+        return uploadNewVersionFileSize;
+    }
+
+    public String getUploadNewVersionSha256() {
+        return uploadNewVersionSha256;
+    }
+
+    public String getUploadNewVersionNote() {
+        return uploadNewVersionNote;
     }
 
     @Override
