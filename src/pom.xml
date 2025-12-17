@@ -30,6 +30,7 @@
         <javafx.version>21.0.1</javafx.version>
         <junit.version>5.10.1</junit.version>
         <dotenv.version>3.0.0</dotenv.version>
+        <jakarta.mail.version>2.0.1</jakarta.mail.version>
     </properties>
 
     <dependencyManagement>
@@ -68,6 +69,13 @@
                 <artifactId>junit-jupiter</artifactId>
                 <version>${junit.version}</version>
                 <scope>test</scope>
+            </dependency>
+
+            <!-- Jakarta Mail for sending emails -->
+            <dependency>
+                <groupId>com.sun.mail</groupId>
+                <artifactId>jakarta.mail</artifactId>
+                <version>${jakarta.mail.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
