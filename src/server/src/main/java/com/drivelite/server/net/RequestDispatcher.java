@@ -8,6 +8,7 @@ import com.drivelite.common.protocol.ResponseCode;
 import com.drivelite.server.handler.AuthMiddleware;
 import com.drivelite.server.handler.DownloadHandler;
 import com.drivelite.server.handler.UploadHandler;
+import com.drivelite.server.handler.UploadNewVersionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.InputStream;
@@ -27,6 +28,7 @@ public class RequestDispatcher {
     private final Map<MessageType, RequestHandler> handlers;
     private final UploadHandler uploadHandler;
     private final DownloadHandler downloadHandler;
+    private final UploadNewVersionHandler uploadNewVersionHandler;
     private final AuthMiddleware authMiddleware;
 
     public RequestDispatcher() {
@@ -34,6 +36,7 @@ public class RequestDispatcher {
         this.handlers = new HashMap<>();
         this.uploadHandler = new UploadHandler();
         this.downloadHandler = new DownloadHandler();
+        this.uploadNewVersionHandler = new UploadNewVersionHandler();
         this.authMiddleware = new AuthMiddleware();
     }
 
@@ -126,6 +129,11 @@ public class RequestDispatcher {
                 return handleUploadBytes(in, out, context);
             }
 
+            // Nếu là UPLOAD_NEW_VERSION_BEGIN và response OK, đọc file bytes
+            if (context.isUploadingNewVersion() && response.isOk()) {
+                return handleUploadNewVersionBytes(in, out, context);
+            }
+
             // Nếu là DOWNLOAD_BEGIN và response OK, chờ READY rồi stream file
             if (context.isDownloading() && response.isOk()) {
                 return handleDownloadFlow(in, out, context);
@@ -165,6 +173,19 @@ public class RequestDispatcher {
         } catch (Exception e) {
             System.err.println("[DISPATCHER] Error handling upload bytes: " + e.getMessage());
             context.clearUploadContext();
+            return false;
+        }
+    }
+
+    /**
+     * Xử lý file bytes sau khi UPLOAD_NEW_VERSION_BEGIN được chấp nhận.
+     */
+    private boolean handleUploadNewVersionBytes(InputStream in, OutputStream out, ClientContext context) {
+        try {
+            return uploadNewVersionHandler.handleFileBytes(in, out, context);
+        } catch (Exception e) {
+            System.err.println("[DISPATCHER] Error handling upload new version bytes: " + e.getMessage());
+            context.clearUploadNewVersionContext();
             return false;
         }
     }

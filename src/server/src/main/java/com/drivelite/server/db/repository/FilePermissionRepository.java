@@ -130,6 +130,57 @@ public class FilePermissionRepository {
     }
 
     /**
+     * Lấy tất cả permissions của một file (để hiển thị danh sách người được share).
+     * Returns list of maps with userId, email, displayName, permission, grantedAt.
+     */
+    public List<Map<String, Object>> findAllByFileId(int fileId) throws SQLException {
+        String sql = "SELECT fp.UserId, u.Email, u.DisplayName, fp.Permission, fp.GrantedAt " +
+                     "FROM FilePermissions fp " +
+                     "INNER JOIN Users u ON fp.UserId = u.UserId " +
+                     "WHERE fp.FileId = ? " +
+                     "ORDER BY fp.Permission DESC, fp.GrantedAt ASC";
+        
+        List<Map<String, Object>> results = new ArrayList<>();
+        
+        try (Connection conn = DatabaseManager.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, fileId);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("userId", rs.getInt("UserId"));
+                    item.put("email", rs.getString("Email"));
+                    item.put("displayName", rs.getString("DisplayName"));
+                    item.put("permission", rs.getString("Permission"));
+                    item.put("grantedAt", rs.getTimestamp("GrantedAt").toLocalDateTime().toString());
+                    results.add(item);
+                }
+            }
+        }
+        return results;
+    }
+
+    /**
+     * Kiểm tra permission đã tồn tại chưa.
+     */
+    public boolean exists(int fileId, int userId) throws SQLException {
+        String sql = "SELECT 1 FROM FilePermissions WHERE FileId = ? AND UserId = ?";
+        
+        try (Connection conn = DatabaseManager.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, fileId);
+            stmt.setInt(2, userId);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    /**
      * Lấy danh sách files được share cho user (VIEW hoặc EDIT, không phải OWNER).
      * Returns list of maps with fileId and permission.
      */
