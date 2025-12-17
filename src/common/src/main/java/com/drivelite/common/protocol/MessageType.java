@@ -18,6 +18,8 @@ public enum MessageType {
     UPLOAD_NEW_VERSION_BEGIN,
     DOWNLOAD_BEGIN,
     DOWNLOAD_VERSION,
+    DELETE_FILE,
+    RENAME_FILE,
 
     // Sharing
     SHARE_ADD,

@@ -1,6 +1,7 @@
 package com.drivelite.common.protocol;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Response envelope - cấu trúc chung cho mọi response từ Server → Client.
@@ -53,4 +54,12 @@ public class Response {
 
     public Object getData() { return data; }
     public void setData(Object data) { this.data = data; }
+
+    /**
+     * Serialize response to JSON string.
+     */
+    public String toJson() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writeValueAsString(this);
+    }
 }

@@ -5,6 +5,9 @@ import com.drivelite.common.protocol.MessageType;
 import com.drivelite.common.protocol.Request;
 import com.drivelite.common.protocol.Response;
 import com.drivelite.common.protocol.ResponseCode;
+import com.drivelite.server.handler.AuthMiddleware;
+import com.drivelite.server.handler.DownloadHandler;
+import com.drivelite.server.handler.UploadHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.InputStream;
@@ -22,10 +25,16 @@ public class RequestDispatcher {
 
     private final ObjectMapper objectMapper;
     private final Map<MessageType, RequestHandler> handlers;
+    private final UploadHandler uploadHandler;
+    private final DownloadHandler downloadHandler;
+    private final AuthMiddleware authMiddleware;
 
     public RequestDispatcher() {
         this.objectMapper = new ObjectMapper();
         this.handlers = new HashMap<>();
+        this.uploadHandler = new UploadHandler();
+        this.downloadHandler = new DownloadHandler();
+        this.authMiddleware = new AuthMiddleware();
     }
 
     /**
@@ -67,6 +76,14 @@ public class RequestDispatcher {
                     "Unknown message type: " + type);
             }
 
+            // Kiểm tra authentication nếu cần
+            if (AuthMiddleware.requiresAuth(request)) {
+                Response authError = authMiddleware.authenticate(request, context);
+                if (authError != null) {
+                    return authError;
+                }
+            }
+
             // Gọi handler
             return handler.handle(request, context);
 
@@ -104,6 +121,16 @@ public class RequestDispatcher {
             System.out.println("[DISPATCHER] Response: ok=" + response.isOk() + 
                              ", code=" + response.getCode());
 
+            // Nếu là UPLOAD_BEGIN và response OK, đọc file bytes
+            if (context.isUploading() && response.isOk()) {
+                return handleUploadBytes(in, out, context);
+            }
+
+            // Nếu là DOWNLOAD_BEGIN và response OK, chờ READY rồi stream file
+            if (context.isDownloading() && response.isOk()) {
+                return handleDownloadFlow(in, out, context);
+            }
+
             return true;
 
         } catch (java.io.EOFException e) {
@@ -125,6 +152,48 @@ public class RequestDispatcher {
             } catch (Exception ignored) {
                 // Không thể gửi error response, bỏ qua
             }
+            return false;
+        }
+    }
+
+    /**
+     * Xử lý file bytes sau khi UPLOAD_BEGIN được chấp nhận.
+     */
+    private boolean handleUploadBytes(InputStream in, OutputStream out, ClientContext context) {
+        try {
+            return uploadHandler.handleFileBytes(in, out, context);
+        } catch (Exception e) {
+            System.err.println("[DISPATCHER] Error handling upload bytes: " + e.getMessage());
+            context.clearUploadContext();
+            return false;
+        }
+    }
+
+    /**
+     * Xử lý download flow sau khi DOWNLOAD_BEGIN được chấp nhận.
+     * 1. Chờ client gửi READY
+     * 2. Stream file bytes về client
+     */
+    private boolean handleDownloadFlow(InputStream in, OutputStream out, ClientContext context) {
+        try {
+            // 1. Đọc READY message từ client
+            String readyJson = FrameIO.readFrame(in);
+            Request readyRequest = objectMapper.readValue(readyJson, Request.class);
+            
+            if (readyRequest.getType() != MessageType.READY) {
+                System.err.println("[DISPATCHER] Expected READY, got: " + readyRequest.getType());
+                context.clearDownloadContext();
+                return false;
+            }
+
+            System.out.println("[DISPATCHER] Received READY, streaming file...");
+
+            // 2. Stream file bytes về client
+            return downloadHandler.streamFileBytes(out, context);
+
+        } catch (Exception e) {
+            System.err.println("[DISPATCHER] Error handling download flow: " + e.getMessage());
+            context.clearDownloadContext();
             return false;
         }
     }
