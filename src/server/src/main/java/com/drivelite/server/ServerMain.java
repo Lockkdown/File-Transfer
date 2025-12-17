@@ -1,9 +1,8 @@
 package com.drivelite.server;
 
-import com.drivelite.common.protocol.MessageType;
-import com.drivelite.common.protocol.Response;
 import com.drivelite.server.db.DatabaseConfig;
 import com.drivelite.server.db.DatabaseManager;
+import com.drivelite.server.handler.HandlerRegistry;
 import com.drivelite.server.net.RequestDispatcher;
 import com.drivelite.server.net.TcpServer;
 
@@ -67,16 +66,8 @@ public class ServerMain {
 
     /**
      * Đăng ký các request handlers.
-     * Hiện tại chỉ có PING handler để test.
-     * Các handler khác sẽ được thêm ở M4.
      */
     private static void registerHandlers(RequestDispatcher dispatcher) {
-        // PING handler - để test connection
-        dispatcher.registerHandler(MessageType.PING, (request, context) -> {
-            return Response.success("PONG", null);
-        });
-
-        // Placeholder cho các handler khác (sẽ implement ở M4)
-        System.out.println("[INIT] Handlers registered. Ready to accept connections.");
+        HandlerRegistry.registerAll(dispatcher);
     }
 }
