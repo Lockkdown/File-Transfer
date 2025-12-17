@@ -23,9 +23,9 @@ public class DatabaseConfig {
 
         this.host = dotenv.get("DB_HOST", "localhost");
         this.port = Integer.parseInt(dotenv.get("DB_PORT", "1433"));
-        this.databaseName = dotenv.get("DB_NAME", "FileTransfer");
-        this.username = dotenv.get("DB_USER", "sa");
-        this.password = dotenv.get("DB_PASSWORD", "");
+        this.databaseName = dotenv.get("DB_NAME", "your_db_name");
+        this.username = dotenv.get("DB_USER", "your_db_user");
+        this.password = dotenv.get("DB_PASSWORD", "your_db_password");
     }
 
     /**
