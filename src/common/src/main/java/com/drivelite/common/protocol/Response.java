@@ -62,4 +62,12 @@ public class Response {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(this);
     }
+
+    /**
+     * Deserialize response from JSON string.
+     */
+    public static Response fromJson(String json) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(json, Response.class);
+    }
 }
