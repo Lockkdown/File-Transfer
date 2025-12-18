@@ -14,6 +14,7 @@ import com.drivelite.server.db.repository.FilePermissionRepository;
 import com.drivelite.server.db.repository.FileRepository;
 import com.drivelite.server.db.repository.FileVersionRepository;
 import com.drivelite.server.net.ClientContext;
+import com.drivelite.server.security.ValidationUtils;
 import com.drivelite.server.service.StorageService;
 
 import io.github.cdimascio.dotenv.Dotenv;
@@ -91,10 +92,10 @@ public class UploadHandler {
                 return Response.error(ResponseCode.VALIDATION_ERROR, "sha256 is required");
             }
 
-            // Sanitize filename (remove path components)
-            fileName = sanitizeFileName(fileName);
-            if (fileName.isEmpty()) {
-                return Response.error(ResponseCode.VALIDATION_ERROR, "Invalid fileName");
+            // Sanitize filename (remove path components) - sử dụng ValidationUtils
+            fileName = ValidationUtils.sanitizeFileName(fileName);
+            if (fileName == null || fileName.isEmpty()) {
+                return Response.error(ResponseCode.VALIDATION_ERROR, "Invalid fileName (path traversal detected or empty)");
             }
 
             long fileSize = ((Number) fileSizeObj).longValue();
@@ -214,36 +215,6 @@ public class UploadHandler {
             }
             return false;
         }
-    }
-
-    /**
-     * Sanitize filename để tránh path traversal.
-     * Chỉ giữ tên file, loại bỏ path components.
-     */
-    private String sanitizeFileName(String fileName) {
-        if (fileName == null) return "";
-        
-        // Loại bỏ path separators
-        fileName = fileName.replace("\\", "/");
-        int lastSlash = fileName.lastIndexOf('/');
-        if (lastSlash >= 0) {
-            fileName = fileName.substring(lastSlash + 1);
-        }
-        
-        // Loại bỏ các ký tự nguy hiểm
-        fileName = fileName.replaceAll("[<>:\"|?*]", "_");
-        
-        // Không cho phép bắt đầu bằng dấu chấm (hidden files)
-        while (fileName.startsWith(".")) {
-            fileName = fileName.substring(1);
-        }
-        
-        // Giới hạn độ dài
-        if (fileName.length() > 255) {
-            fileName = fileName.substring(0, 255);
-        }
-        
-        return fileName.trim();
     }
 
     private void sendResponse(OutputStream out, Response response) throws Exception {

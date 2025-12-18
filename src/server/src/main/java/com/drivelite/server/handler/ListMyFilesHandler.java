@@ -48,6 +48,7 @@ public class ListMyFilesHandler implements RequestHandler {
                 fileData.put("currentVersion", file.getCurrentVersion());
                 fileData.put("createdAt", file.getCreatedAt() != null ? file.getCreatedAt().toString() : null);
                 fileData.put("permission", "OWNER");
+                fileData.put("ownerEmail", context.getUserEmail()); // Owner là user hiện tại
 
                 // Lấy thông tin version hiện tại
                 FileVersion currentVersion = versionRepository

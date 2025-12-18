@@ -1,6 +1,7 @@
 package com.drivelite.common.protocol;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Request envelope - cấu trúc chung cho mọi request từ Client → Server.
@@ -38,4 +39,20 @@ public class Request {
 
     public Object getData() { return data; }
     public void setData(Object data) { this.data = data; }
+
+    /**
+     * Serialize request to JSON string.
+     */
+    public String toJson() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writeValueAsString(this);
+    }
+
+    /**
+     * Deserialize request from JSON string.
+     */
+    public static Request fromJson(String json) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(json, Request.class);
+    }
 }

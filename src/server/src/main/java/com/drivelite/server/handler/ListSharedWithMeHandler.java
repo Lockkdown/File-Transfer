@@ -11,9 +11,11 @@ import com.drivelite.common.protocol.Response;
 import com.drivelite.common.protocol.ResponseCode;
 import com.drivelite.server.db.entity.FileMetadata;
 import com.drivelite.server.db.entity.FileVersion;
+import com.drivelite.server.db.entity.User;
 import com.drivelite.server.db.repository.FilePermissionRepository;
 import com.drivelite.server.db.repository.FileRepository;
 import com.drivelite.server.db.repository.FileVersionRepository;
+import com.drivelite.server.db.repository.UserRepository;
 import com.drivelite.server.net.ClientContext;
 import com.drivelite.server.net.RequestHandler;
 
@@ -26,11 +28,13 @@ public class ListSharedWithMeHandler implements RequestHandler {
     private final FileRepository fileRepository;
     private final FileVersionRepository versionRepository;
     private final FilePermissionRepository permissionRepository;
+    private final UserRepository userRepository;
 
     public ListSharedWithMeHandler() {
         this.fileRepository = new FileRepository();
         this.versionRepository = new FileVersionRepository();
         this.permissionRepository = new FilePermissionRepository();
+        this.userRepository = new UserRepository();
     }
 
     @Override
@@ -58,7 +62,10 @@ public class ListSharedWithMeHandler implements RequestHandler {
                 fileData.put("currentVersion", file.getCurrentVersion());
                 fileData.put("createdAt", file.getCreatedAt() != null ? file.getCreatedAt().toString() : null);
                 fileData.put("permission", permission);
-                fileData.put("ownerUserId", file.getOwnerUserId());
+                
+                // Lấy email của owner
+                User owner = userRepository.findById(file.getOwnerUserId()).orElse(null);
+                fileData.put("ownerEmail", owner != null ? owner.getEmail() : "Unknown");
 
                 // Lấy thông tin version hiện tại
                 FileVersion currentVersion = versionRepository
