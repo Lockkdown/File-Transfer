@@ -186,6 +186,15 @@ public class LoginScreen extends VBox {
         Task<String> loginTask = new Task<>() {
             @Override
             protected String call() throws Exception {
+                // Enable SSL/TLS with TrustAll for development
+                // In production, use proper truststore
+                try {
+                    app.getTcpClient().enableSSLTrustAll();
+                } catch (Exception e) {
+                    System.err.println("[SSL] Failed to enable SSL: " + e.getMessage());
+                    // Continue without SSL if it fails
+                }
+                
                 // Connect to server
                 app.getTcpClient().connect(host, port);
                 

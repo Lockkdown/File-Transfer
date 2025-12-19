@@ -57,3 +57,6 @@ tutorial/
 
 # JavaFX
 *.fxml.bak
+
+ssl/
+scripts/

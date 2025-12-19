@@ -11,8 +11,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+
 import com.drivelite.common.protocol.Request;
 import com.drivelite.common.protocol.Response;
+import com.drivelite.common.ssl.SSLContextFactory;
 
 /**
  * TCP Client để kết nối tới server.
@@ -38,8 +43,34 @@ public class TcpClient implements AutoCloseable {
 
     private volatile boolean connected = false;
     private Consumer<Boolean> connectionListener;
+    
+    private SSLContext sslContext;
+    private boolean sslEnabled = false;
 
     public TcpClient() {
+    }
+
+    /**
+     * Enable SSL/TLS encryption.
+     * Phải gọi trước connect().
+     * 
+     * @param truststorePath Đường dẫn đến truststore (.p12)
+     * @param truststorePassword Password của truststore
+     */
+    public void enableSSL(String truststorePath, String truststorePassword) throws Exception {
+        this.sslContext = SSLContextFactory.createClientContext(truststorePath, truststorePassword);
+        this.sslEnabled = true;
+        System.out.println("[CLIENT] SSL/TLS enabled");
+    }
+
+    /**
+     * Enable SSL/TLS với Trust All (CHỈ DÙNG CHO DEVELOPMENT).
+     * KHÔNG DÙNG TRONG PRODUCTION!
+     */
+    public void enableSSLTrustAll() throws Exception {
+        this.sslContext = SSLContextFactory.createTrustAllContext();
+        this.sslEnabled = true;
+        System.out.println("[CLIENT] SSL/TLS enabled (TRUST ALL - DEV ONLY!)");
     }
 
     /**
@@ -53,8 +84,21 @@ public class TcpClient implements AutoCloseable {
         this.host = host;
         this.port = port;
         
-        socket = new Socket();
-        socket.connect(new java.net.InetSocketAddress(host, port), CONNECT_TIMEOUT_MS);
+        if (sslEnabled && sslContext != null) {
+            SSLSocketFactory factory = sslContext.getSocketFactory();
+            socket = factory.createSocket();
+            socket.connect(new java.net.InetSocketAddress(host, port), CONNECT_TIMEOUT_MS);
+            
+            // Cấu hình SSL socket
+            SSLSocket sslSocket = (SSLSocket) socket;
+            sslSocket.setEnabledProtocols(new String[]{"TLSv1.3", "TLSv1.2"});
+            sslSocket.startHandshake();
+            System.out.println("[CLIENT] SSL handshake completed");
+        } else {
+            socket = new Socket();
+            socket.connect(new java.net.InetSocketAddress(host, port), CONNECT_TIMEOUT_MS);
+            System.out.println("[CLIENT] WARNING: Connected without SSL/TLS encryption!");
+        }
         socket.setSoTimeout(READ_TIMEOUT_MS);
         socket.setKeepAlive(true);
         socket.setTcpNoDelay(true);
