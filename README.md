@@ -219,53 +219,6 @@ File_Transfer/
 │   └── client/         # JavaFX Client
 └── README.md
 ```
-
-## Configuration (.env)
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DB_HOST` | SQL Server hostname | localhost |
-| `DB_PORT` | SQL Server port | 1433 |
-| `DB_NAME` | Database name | FileTransfer |
-| `DB_USER` | SQL Server username | — |
-| `DB_PASSWORD` | SQL Server password | — |
-| `SERVER_PORT` | TCP server port | 9000 |
-| `MAX_FILE_SIZE` | Max upload size (bytes) | 524288000 (500MB) |
-
-## Test Database Connection
-
-```powershell
-cd src/server
-mvn exec:java "-Dexec.mainClass=com.drivelite.server.db.DbConnectionTest"
-```
-
-## Troubleshooting
-
-### "JAVA_HOME not set"
-```powershell
-$env:JAVA_HOME = "C:\Program Files\Java\jdk-21"
-```
-
-### "Login failed for user"
-- Kiểm tra SQL Server Authentication đã bật
-- Kiểm tra username/password trong `.env`
-
-### "Cannot open database"
-- Chạy `CREATE DATABASE FileTransfer` trong SSMS
-
-### "Connection refused"
-- Bật TCP/IP trong SQL Server Configuration Manager
-- Mở port 1433 trong Windows Firewall
-
-## Demo với Wireshark
-
-1. Mở Wireshark, chọn interface mạng (Ethernet/Wi-Fi)
-2. Filter: `tcp.port == 9000`
-3. Start capture
-4. Chạy Server và Client
-5. Thực hiện các thao tác (login, upload, download)
-6. Stop capture và phân tích packets
-
 ## 📖 Tài liệu tham khảo
 
 - [Oracle Java Networking Tutorial](https://docs.oracle.com/javase/tutorial/networking/)
@@ -274,7 +227,3 @@ $env:JAVA_HOME = "C:\Program Files\Java\jdk-21"
 - [Wireshark User Guide](https://www.wireshark.org/docs/wsug_html/)
 
 ---
-
-## 📄 License
-
-MIT License - Đồ án học tập
